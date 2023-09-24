@@ -41,6 +41,8 @@ def transfer_table_structure(database, table_regex='.*'):
         create_table_statement = query_create_sql_result.fetchone()[1]
         # 目标数据库创建表
         try:
+            # 创建 语句调整为创建不存在的表
+            create_table_statement = create_table_statement.replace('CREATE TABLE', 'CREATE TABLE IF NOT EXISTS')
             target_mysql.execute(create_table_statement)
         except Exception as e:
             print(f"创建{database}.{table_name}表失败，原因：{e.args[0]}")
