@@ -43,6 +43,8 @@ def transfer_table_structure(database, table_regex='.*'):
         try:
             # 创建 语句调整为创建不存在的表
             create_table_statement = create_table_statement.replace('CREATE TABLE', 'CREATE TABLE IF NOT EXISTS')
+            # 替换符号 sqlalchemy中冒号为参数占位符，转义
+            create_table_statement = create_table_statement.replace(':', '\:')
             target_mysql.execute(create_table_statement)
         except Exception as e:
             print(f"创建{database}.{table_name}表失败，原因：{e.args[0]}")
