@@ -5,6 +5,8 @@
 # @function: 数据库迁移
 # @version : V1.0.0
 
+from tqdm import tqdm
+
 from python.util.sql_helper import SqlHelper
 
 origin_mysql = SqlHelper(mysql_host='192.168.255.222', mysql_port=3307, mysql_user='root', mysql_password='root')
@@ -33,7 +35,7 @@ def transfer_table_structure(database, table_regex='.*'):
         """
     table_list = origin_mysql.query_dict(query_table_sql)
     # 4. 从原始表获取创建表语句，并逐个表在目标库中创建
-    for table in table_list:
+    for table in tqdm(table_list, desc=f"{database}库结构迁移".rjust(30), unit='个'):
         table_name = table['table_name']
         # 获取建表语句
         query_create_sql = f"SHOW CREATE TABLE `{database}`.`{table_name}`"
