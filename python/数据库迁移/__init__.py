@@ -69,30 +69,33 @@ def transfer_table_data(database, table, where_sql='', batch_size=5000):
     """
     data_total = origin_mysql.execute(count_sql).fetchone()[0]
     # 2. 数据迁移
-    for offset in range(0, data_total, batch_size):
-        # 从原始库查询一个批次的数据
-        query_sql = f"""
-            SELECT *
-            FROM `{database}`.`{table}`
-            {where_sql}
-            LIMIT {batch_size}
-            OFFSET {offset}
-        """
-        query_results = origin_mysql.execute(query_sql)
-        # 拼接入库SQL语句及参数
-        columns = ','.join(query_results.keys())
-        columns_param = ','.join([f':{column}' for column in query_results.keys()])
-        insert_sql = f"""
-                INSERT INTO `{database}`.`{table}` ({columns})
-                VALUES ({columns_param})
+    with tqdm(desc=f"{table}表数据迁移".rjust(30), total=data_total, unit='条') as pbar:
+        for offset in range(0, data_total, batch_size):
+            # 从原始库查询一个批次的数据
+            query_sql = f"""
+                SELECT *
+                FROM `{database}`.`{table}`
+                {where_sql}
+                LIMIT {batch_size}
+                OFFSET {offset}
             """
-        params = [dict(zip(query_results.keys(), result)) for result in query_results]
+            query_results = origin_mysql.execute(query_sql)
+            # 拼接入库SQL语句及参数
+            columns = ','.join(query_results.keys())
+            columns_param = ','.join([f':{column}' for column in query_results.keys()])
+            insert_sql = f"""
+                    INSERT INTO `{database}`.`{table}` ({columns})
+                    VALUES ({columns_param})
+                """
+            params = [dict(zip(query_results.keys(), result)) for result in query_results]
 
-        # 存入目标库
-        target = target_mysql.session
-        target.begin()
-        target.execute(text(insert_sql), params)
-        target.commit()
+            # 存入目标库
+            target = target_mysql.session
+            target.begin()
+            target.execute(text(insert_sql), params)
+            target.commit()
+            pbar.update(len(params))
+        pbar.close()
 
 
 if __name__ == '__main__':
