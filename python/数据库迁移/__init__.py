@@ -4,7 +4,7 @@
 # @time    : 2023/9/240 16:19
 # @function: 数据库迁移
 # @version : V1.0.0
-
+from sqlalchemy import text
 from tqdm import tqdm
 
 from python.util.sql_helper import SqlHelper
@@ -52,5 +52,48 @@ def transfer_table_structure(database, table_regex='.*'):
             print(f"创建{database}.{table_name}表失败，原因：{e.args[0]}")
 
 
+def transfer_table_data(database, table, where_sql='', batch_size=5000):
+    """
+    迁移表数据
+    :param database: 迁移范围定义
+    :param table:  表名称
+    :param where_sql: 迁移条件
+    :param batch_size: 一次迁移数据量
+    :return:
+    """
+    # 1. 计算数据总量
+    count_sql = f"""
+        SELECT count(1)
+        FROM `{database}`.`{table}`
+        {where_sql}
+    """
+    data_total = origin_mysql.execute(count_sql).fetchone()[0]
+    # 2. 数据迁移
+    for offset in range(0, data_total, batch_size):
+        # 从原始库查询一个批次的数据
+        query_sql = f"""
+            SELECT *
+            FROM `{database}`.`{table}`
+            {where_sql}
+            LIMIT {batch_size}
+            OFFSET {offset}
+        """
+        query_results = origin_mysql.execute(query_sql)
+        # 拼接入库SQL语句及参数
+        columns = ','.join(query_results.keys())
+        columns_param = ','.join([f':{column}' for column in query_results.keys()])
+        insert_sql = f"""
+                INSERT INTO `{database}`.`{table}` ({columns})
+                VALUES ({columns_param})
+            """
+        params = [dict(zip(query_results.keys(), result)) for result in query_results]
+
+        # 存入目标库
+        target = target_mysql.session
+        target.begin()
+        target.execute(text(insert_sql), params)
+        target.commit()
+
+
 if __name__ == '__main__':
-    transfer_table_structure('db_user')
+    transfer_table_data('db_user', 't_user')
