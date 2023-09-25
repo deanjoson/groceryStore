@@ -13,6 +13,27 @@ origin_mysql = SqlHelper(mysql_host='192.168.255.222', mysql_port=3307, mysql_us
 target_mysql = SqlHelper(mysql_host='192.168.255.222', mysql_port=3310, mysql_user='root', mysql_password='root')
 
 
+def transfer_database(database):
+    """
+    迁移数据库及所有表数据
+    :param database: 数据库名称
+    :return:
+    """
+    # 1. 迁移数据库结构
+    print(f"迁移数据库结构：{database}")
+    transfer_table_structure(database)
+
+    # 2. 迁移表数据
+    query_table_sql = f"""
+        SELECT table_name
+        FROM information_schema.tables
+        WHERE table_schema = '{database}'
+        """
+    table_list = origin_mysql.query_dict(query_table_sql)
+    for table in table_list:
+        transfer_table_data(database, table['table_name'])
+
+
 def transfer_table_structure(database, table_regex='.*'):
     """
     迁移数据库结构
@@ -99,4 +120,4 @@ def transfer_table_data(database, table, where_sql='', batch_size=5000):
 
 
 if __name__ == '__main__':
-    transfer_table_data('db_user', 't_user')
+    transfer_database('db_user')
