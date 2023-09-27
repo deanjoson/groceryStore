@@ -24,6 +24,8 @@ results = sql_helper.query_dict(select_sql)
 
 # 短信内容及敏感词
 sms_content = []
+# 敏感词合集
+sensitive_word = set()
 
 for result in results:
     data = {
@@ -43,6 +45,8 @@ for result in results:
         sensitive_words = response_json['data']
         # 如果存在敏感词，则整理短信
         if len(sensitive_words) > 0:
+            # 收集出现的敏感词合集。
+            [sensitive_word.add(item) for item in sensitive_words]
             # 将短信和敏感词组合在一起
             sms_content.append({
                 "notice_id": result['notice_id'],
@@ -53,3 +57,7 @@ for result in results:
 # 3. 将结果输出到CSV文件。
 sms_content_df = pd.DataFrame(sms_content)
 sms_content_df.to_csv('sms_content.csv', index=False, encoding='utf-8')
+
+# 4. 将敏感词输出到CSV文件。
+sensitive_word_df = pd.DataFrame(sms_content)
+sensitive_word_df.to_csv('sensitive_word.csv', index=False, encoding='utf-8')
