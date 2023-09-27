@@ -6,6 +6,7 @@
 # @version : V1.0.0
 import json
 
+import pandas as pd
 import requests
 
 from python.util.sql_helper import SqlHelper
@@ -20,6 +21,9 @@ sql_helper = SqlHelper(mysql_host='127.0.0.1',
 # 1. 从数据库中获取所有短信内容
 select_sql = f'SELECT notice_id,content FROM db_notice.t_sms '
 results = sql_helper.query_dict(select_sql)
+
+# 短信内容及敏感词
+sms_content = []
 
 for result in results:
     data = {
@@ -37,4 +41,15 @@ for result in results:
     if response.status_code == 200:
         response_json = json.loads(response.text)
         sensitive_words = response_json['data']
-        print(','.join(sensitive_words))
+        # 如果存在敏感词，则整理短信
+        if len(sensitive_words) > 0:
+            # 将短信和敏感词组合在一起
+            sms_content.append({
+                "notice_id": result['notice_id'],
+                "content": result['content'],
+                "sensitive_word": ','.join(sensitive_words)
+            })
+
+# 3. 将结果输出到CSV文件。
+sms_content_df = pd.DataFrame(sms_content)
+sms_content_df.to_csv('sms_content.csv', index=False, encoding='utf-8')
