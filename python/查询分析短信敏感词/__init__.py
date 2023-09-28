@@ -8,6 +8,7 @@ import json
 
 import pandas as pd
 import requests
+from tqdm import tqdm
 
 from python.util.sql_helper import SqlHelper
 
@@ -27,7 +28,9 @@ sms_content = []
 # 敏感词合集
 sensitive_word = set()
 
-for result in results:
+# 2. 逐条内容调用接口，检查是否包含敏感词
+# 将集合放入tqdm，显示执行进度
+for result in tqdm(results, desc='短信内容分析'):
     data = {
         "text": result['content']
     }
