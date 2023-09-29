@@ -9,18 +9,14 @@ import re
 
 import requests
 
-APP_ID = "wx0000000000000"
-APP_SECRET = "0000000000000000000"
 
-ACCESS_TOKEN_URL = f"https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={APP_ID}&secret={APP_SECRET}"
-
-
-def get_access_token():
+def get_access_token(app_id, app_secret):
     """
     获取访问许可令牌
     :return:
     """
-    response = requests.get(ACCESS_TOKEN_URL)
+    access_token_url = f"https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={app_id}&secret={app_secret}"
+    response = requests.get(access_token_url)
     if response.status_code == 200:
         response_json = json.loads(response.text)
         # print(response.text)
@@ -39,4 +35,5 @@ def get_access_token():
             return None
 
 
-get_access_token()
+if __name__ == '__main__':
+    get_access_token('1', '1')
