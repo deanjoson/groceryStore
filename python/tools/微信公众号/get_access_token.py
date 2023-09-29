@@ -17,8 +17,10 @@ ACCESS_TOKEN_URL = f"https://api.weixin.qq.com/cgi-bin/token?grant_type=client_c
 response = requests.get(ACCESS_TOKEN_URL)
 if response.status_code == 200:
     response_json = json.loads(response.text)
+    if response_json['errcode'] == 40013:
+        print(f'不正确的AppID或AppSecret，请检查配置')
     if response_json['errcode'] == 40164:
         errmsg = response_json['errmsg']
         ipv4 = re.findall(r'ip(.*?)ipv6', errmsg)[0].strip()
         print(f"请先前往mp.weixin.qq.com配置IP白名单: {ipv4}")
-    # print(response.text)
+    print(response.text)
