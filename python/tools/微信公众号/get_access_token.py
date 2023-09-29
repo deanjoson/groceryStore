@@ -17,7 +17,9 @@ ACCESS_TOKEN_URL = f"https://api.weixin.qq.com/cgi-bin/token?grant_type=client_c
 response = requests.get(ACCESS_TOKEN_URL)
 if response.status_code == 200:
     response_json = json.loads(response.text)
-    # print(response.text)
+    print(response.text)
+    if 'access_token' in response_json:
+        print(f"获取到访问许可令牌：{response_json['access_token']}")
     if 'errcode' in response_json:
         if response_json['errcode'] == 40013:
             print(f'不正确的AppID或AppSecret，请检查配置')
