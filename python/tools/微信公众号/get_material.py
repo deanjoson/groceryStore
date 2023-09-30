@@ -5,7 +5,9 @@
 # @function: 获取微信公众号素材列表
 # @version : V1.0.0
 import json
+import os
 
+import pandas as pd
 import requests
 
 from get_access_token import get_access_token
@@ -22,7 +24,7 @@ def get_material(access_token, material_type, offset=0, full=True):
     """
     url = f"https://api.weixin.qq.com/cgi-bin/material/batchget_material?access_token={access_token}"
     # 组装参数
-
+    material_list = []
     while True:
         params = {"type": material_type, "offset": offset, "count": 20}
         body = json.dumps(params).encode("utf-8")
@@ -33,6 +35,7 @@ def get_material(access_token, material_type, offset=0, full=True):
             materials = response_json["item"]
             for material in materials:
                 print(f"media_id: {material['media_id']}, name: {material['name']}")
+                material_list.append(material)
             total_count = response_json["total_count"]
             item_count = response_json["item_count"]
             # 是否查询所有素材
@@ -43,6 +46,13 @@ def get_material(access_token, material_type, offset=0, full=True):
                     break
             else:
                 break
+
+    # 将素材结果输出到CSV文件。
+    df = pd.DataFrame(material_list)
+    # 如果目录不存在则创建
+    if not os.path.exists('data'):
+        os.makedirs('data')
+    df.to_csv(f'data/material_{material_type}.csv', index=False, encoding='utf-8')
 
 
 if __name__ == '__main__':
