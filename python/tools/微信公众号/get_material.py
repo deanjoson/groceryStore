@@ -35,8 +35,12 @@ def get_material(access_token, material_type, offset=0, full=True):
                 print(f"media_id: {material['media_id']}, name: {material['name']}")
             total_count = response_json["total_count"]
             item_count = response_json["item_count"]
-            if offset + item_count < total_count:
-                offset += item_count
+            # 是否查询所有素材
+            if full:
+                if offset + item_count < total_count:
+                    offset += item_count
+                else:
+                    break
             else:
                 break
 
