@@ -10,14 +10,37 @@ import requests
 
 from get_access_token import get_access_token
 
-# 1. 获取访问许可
-access_token = get_access_token("1", "1")
-get_material_url = f"https://api.weixin.qq.com/cgi-bin/material/batchget_material?access_token={access_token}"
 
-# 组装参数
-params = {"type": 'image', "offset": 0, "count": 20}
-body = json.dumps(params).encode("utf-8")
-headers = {"Content-Type": "application/json;charset=UTF-8"}
-response = requests.post(get_material_url, headers=headers, data=body)
+def get_material(access_token, material_type, offset=0, full=True):
+    """
+    获取素材列表
+    :param access_token: 微信公众号访问许可令牌
+    :param material_type:  素材类型
+    :param offset: 素材偏移位置
+    :param full: 是否全部素材
+    :return:
+    """
+    url = f"https://api.weixin.qq.com/cgi-bin/material/batchget_material?access_token={access_token}"
+    # 组装参数
 
-print(response.content.decode("utf-8"))
+    while True:
+        params = {"type": material_type, "offset": offset, "count": 20}
+        body = json.dumps(params).encode("utf-8")
+        headers = {"Content-Type": "application/json;charset=UTF-8"}
+        response = requests.post(url, headers=headers, data=body)
+        if response.status_code == 200:
+            response_json = json.loads(response.content.decode("utf-8"))
+            materials = response_json["item"]
+            for material in materials:
+                print(f"media_id: {material['media_id']}, name: {material['name']}")
+            total_count = response_json["total_count"]
+            item_count = response_json["item_count"]
+            if offset + item_count < total_count:
+                offset += item_count
+            else:
+                break
+
+
+if __name__ == '__main__':
+    access_token = get_access_token("1", "1")
+    get_material(access_token, "image")
