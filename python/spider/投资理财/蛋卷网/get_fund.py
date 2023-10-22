@@ -2,7 +2,7 @@
 # -*- coding:utf-8 -*-
 # @author  : 邓军
 # @time    : 2023/10/22 14:05
-# @function: the script is used to do something.
+# @function: 根据基金代码查询获取基金信息
 # @version : V1.0.0
 import requests
 
